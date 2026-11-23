@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: swish-ground
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ROSTER_SHEET_ID
+        value: 1dZ3SfBg-gVtYl9zmVhOWzWpD04BZC5SxMYMLJBJIcZs
+      - key: DETAILS_SHEET_ID
+        value: 1uia2mUg_rQiWrIGcP1w90lHbSvWpCGc0W3iOKPm8lNk
+      - key: ACTIVITY_SHEET_ID
+        value: 19T-lp8y6soFHlr4u0k7gAZQeVP4N-qB7tgH-8Dd3_AI
+      - key: ATTENDANCE_SHEET_ID
+        value: 1S98FEkVenYrGkBMiVikziuT4uG9X6aH9OzrGcKZmvwQ
+      - key: GOOGLE_CREDENTIALS
+        sync: false
+      - key: PHOTO_FOLDER_ID
+        sync: false
+      - key: TOKEN_SECRET
+        sync: false
+      - key: ADMIN_PW
+        sync: false

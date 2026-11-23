@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#34C363">
+<title>Swish Ground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --swish:#34C363; --swish-dark:#26A04D; --swish-wash:#E7F7ED;
+  --ink:#0E2318; --ink-60:#5A6B61; --ink-30:#9AA8A0;
+  --paper:#FFFFFF; --mist:#EEF3EF; --line:#DCE5DF;
+  --alert:#D3453B; --alert-wash:#FBEDEC; --amber:#E8A317; --amber-wash:#FDF4E3;
+  --r:14px; --pad:18px;
+}
+html[data-theme="dark"]{
+  --swish:#3ED273; --swish-dark:#5BDF8A; --swish-wash:#123421;
+  --ink:#E9F1EB; --ink-60:#93A69A; --ink-30:#66786D;
+  --paper:#0F1713; --mist:#18231D; --line:#26342C;
+  --alert:#F06A60; --alert-wash:#35201E; --amber:#F0B542; --amber-wash:#332715;
+}
+html[data-theme="dark"] body{background:#0A110D}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:'Manrope',system-ui,sans-serif;font-variant-numeric:tabular-nums;
+  background:var(--mist);color:var(--ink);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em}
+
+#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--paper);display:flex;flex-direction:column}
+@media(min-width:521px){#app{box-shadow:0 0 0 1px var(--line)}}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px var(--pad);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:20}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;letter-spacing:-.03em}
+.spark{width:15px;height:15px}
+.hdr-actions{display:flex;align-items:center;gap:8px}
+.who{text-align:right;line-height:1.15}
+.who b{display:block;font-weight:700;font-size:13.5px}
+.who span{font-size:11.5px;color:var(--ink-60)}
+.icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--mist)}
+.icon svg{width:17px;height:17px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon:active{background:var(--line)}
+main{flex:1;padding:var(--pad);padding-bottom:40px}
+.screen{display:none}.screen.on{display:block}
+
+.btn{display:block;width:100%;padding:17px;border-radius:var(--r);background:var(--swish);color:#fff;
+  font-weight:800;font-size:17px;text-align:center;letter-spacing:-.01em;transition:transform .08s,background .15s}
+.btn:active{transform:scale(.985);background:var(--swish-dark)}
+.btn[disabled]{background:var(--line);color:var(--ink-30);pointer-events:none}
+label.f{display:block;margin-bottom:15px}
+label.f>span{display:block;font-size:13px;font-weight:600;color:var(--ink-60);margin-bottom:6px}
+input,select{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);outline:none}
+input:focus,select:focus{border-color:var(--swish);box-shadow:0 0 0 3px var(--swish-wash)}
+.err{background:var(--alert-wash);color:var(--alert);padding:12px 14px;border-radius:12px;font-size:14px;font-weight:600;margin-bottom:14px}
+.note{font-size:13px;color:var(--ink-60);margin:10px 0 0}
+
+.hero{padding:6px 0 18px}
+.hero .big{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.hero .sub{color:var(--ink-60);font-size:14px;margin-top:5px}
+.code{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--swish-wash);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.code .lab{font-size:12px;font-weight:600;color:var(--swish-dark)}
+.code .val{font-size:20px;font-weight:800;letter-spacing:.02em;color:var(--swish-dark)}
+
+.shot{display:block;width:100%;border:2px dashed var(--line);border-radius:var(--r);padding:30px 16px;
+  text-align:center;color:var(--ink-60);font-weight:600;background:var(--paper);transition:border-color .2s,background .2s;cursor:pointer;margin-bottom:16px}
+.shot:active{border-color:var(--swish);background:var(--swish-wash)}
+.shot.has{border-style:solid;border-color:var(--swish);padding:0;overflow:hidden}
+.shot svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.6;display:block;margin:0 auto 10px}
+.shot .hint{font-weight:500;font-size:12.5px;margin-top:5px;color:var(--ink-30)}
+.shot img{display:block;width:100%;max-height:230px;object-fit:cover}
+.shot .retake{padding:9px;font-size:12.5px;font-weight:700;color:var(--swish-dark);background:var(--swish-wash)}
+.gps{font-size:12.5px;color:var(--ink-60);margin:-6px 0 16px;display:flex;align-items:center;gap:6px}
+.gps b{color:var(--swish-dark)}
+
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.tile{background:var(--mist);border-radius:var(--r);padding:14px}
+.tile .k{font-size:12px;color:var(--ink-60);font-weight:600}
+.tile .v{font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:2px}
+.rows{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row .t{font-weight:700;font-size:14.5px;flex:1}
+.row .v{font-weight:800;font-size:18px}
+.seg{display:flex;gap:6px;margin-bottom:14px}
+.seg button{flex:1;padding:9px;border-radius:10px;background:var(--mist);font-size:13px;font-weight:700;color:var(--ink-60)}
+.seg button.on{background:var(--ink);color:#fff}
+.dates{display:flex;gap:8px;margin-bottom:16px}
+.dates label{flex:1}
+.dates input{padding:10px;font-size:13px}
+.maint{text-align:center;padding:60px 20px;color:var(--ink-60)}
+.maint svg{width:34px;height:34px;stroke:var(--ink-30);fill:none;stroke-width:1.6;margin-bottom:12px}
+.maint b{display:block;color:var(--ink);font-size:16px;margin-bottom:5px}
+
+nav{position:sticky;bottom:0;display:flex;background:var(--paper);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:9px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--ink-30)}
+nav button.on{color:var(--swish-dark)}
+nav svg{width:21px;height:21px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+
+.empty{text-align:center;padding:44px 20px;color:var(--ink-60)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:5px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;z-index:60;background:var(--ink);color:#fff;
+  padding:12px 18px;border-radius:99px;font-size:14px;font-weight:600;max-width:86%;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}#toast.bad{background:var(--alert)}
+#splash{position:fixed;inset:0;background:var(--paper);display:grid;place-items:center;z-index:90}
+.spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--swish);border-radius:99px;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="splash"><div class="spin"></div></div>
+
+<div id="app" class="hide">
+  <header>
+    <div class="brand">
+      <svg class="spark" viewBox="0 0 24 24"><path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z" fill="#34C363"/></svg>
+      swish
+    </div>
+    <div class="hdr-actions">
+      <div class="who" id="who"></div>
+      <button class="icon" id="themeBtn" aria-label="Theme"></button>
+      <button class="icon hide" id="outBtn" aria-label="Sign out">
+        <svg viewBox="0 0 24 24"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="screen" id="s-login">
+      <div style="padding:26px 0 6px">
+        <h1 style="font-size:27px">Sign in</h1>
+        <p class="note">Use your work email and your mobile number as the password.</p>
+      </div>
+      <div id="loginErr"></div>
+      <label class="f"><span>Email</span>
+        <input id="li-id" type="email" autocomplete="username" inputmode="email" placeholder="you@justswish.in"></label>
+      <label class="f"><span>Mobile number</span>
+        <input id="li-pw" type="password" autocomplete="current-password" inputmode="numeric" placeholder="10-digit mobile"></label>
+      <button class="btn" id="li-go">Sign in</button>
+    </section>
+
+    <section class="screen" id="s-attend"></section>
+    <section class="screen" id="s-admin"></section>
+    <section class="screen" id="s-maint">
+      <div class="maint">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2 2.8-2.8z"/></svg>
+        <b id="maintTitle">Under maintenance</b>
+        This is coming soon.
+      </div>
+    </section>
+  </main>
+
+  <nav id="nav" class="hide"></nav>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* Swish Ground — attendance. Talks to the Render backend over fetch. */
+var API = 'https://swish-backend-2ge4.onrender.com/';     // e.g. https://swish-ground.onrender.com
+var S = { token:null, user:null, perms:{}, photo:null };
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function toast(m,bad){ var t=$('toast'); t.textContent=m; t.className='on'+(bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3200); }
+function money(n){ return Number(n||0).toLocaleString('en-IN'); }
+function todayKey(){ var d=new Date(Date.now()+5.5*3600*1000); return d.toISOString().slice(0,10); }
+function busy(b,on,l){ b.disabled=on; if(on){ b.dataset.l=b.textContent; b.textContent=l||'Working…'; } else if(b.dataset.l){ b.textContent=b.dataset.l; } }
+
+function api(method, path, params, body){
+  var url = API + path;
+  if(params){ var q=Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&'); url+='?'+q; }
+  var opt = { method };
+  if(body){ opt.headers={'Content-Type':'application/json'}; opt.body=JSON.stringify(body); }
+  return fetch(url,opt).then(r=>r.json()).then(r=>{
+    if(r && r.ok===false && /SESSION_EXPIRED|BAD_TOKEN|ACCOUNT_INACTIVE|USER_NOT_FOUND/.test(r.error||'')){
+      signOut('Signed out. Please sign in again.');
+    }
+    return r;
+  });
+}
+var post = (p,b)=>api('POST',p,null,b);
+var get  = (p,params)=>api('GET',p,Object.assign({token:S.token},params||{}),null);
+
+/* ---------- theme ---------- */
+var SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+var MOON='<svg viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>';
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t);
+  var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content', t==='dark'?'#0F1713':'#34C363');
+  $('themeBtn').innerHTML = t==='dark'?SUN:MOON; try{localStorage.setItem('swish_theme',t);}catch(e){} }
+function initTheme(){ var t=null; try{t=localStorage.getItem('swish_theme');}catch(e){}
+  if(!t) t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'; applyTheme(t); }
+
+/* ---------- EXIF (same reader as before, trimmed) ---------- */
+function readExif(buf){ var v=new DataView(buf); if(v.getUint16(0,false)!==0xFFD8) return {ok:false};
+  var off=2,len=v.byteLength; while(off<len-4){ if(v.getUint16(off,false)!==0xFFE1){ if(v.getUint8(off)!==0xFF) return {ok:false}; off+=2+v.getUint16(off+2,false); continue; }
+    var a=off+4; if(v.getUint32(a,false)!==0x45786966) return {ok:false}; return parseTiff(v,a+6); } return {ok:false}; }
+function parseTiff(v,base){ var le=v.getUint16(base,false)===0x4949; if(v.getUint16(base+2,le)!==42) return {ok:false};
+  var ifd0=base+v.getUint32(base+4,le),out={ok:true,lat:null,lon:null,ts:''},ep=null,gp=null;
+  eachTag(v,ifd0,le,(t,ty,c,vo)=>{ if(t===0x8769)ep=base+v.getUint32(vo,le); if(t===0x8825)gp=base+v.getUint32(vo,le); });
+  if(ep) eachTag(v,ep,le,(t,ty,c,vo)=>{ if((t===0x9003||t===0x9004)&&!out.ts) out.ts=ascii(v,vo,c,base,le); });
+  if(!out.ts) eachTag(v,ifd0,le,(t,ty,c,vo)=>{ if(t===0x0132) out.ts=ascii(v,vo,c,base,le); });
+  if(gp){ var lr='',or_='',lv=null,ov=null; eachTag(v,gp,le,(t,ty,c,vo)=>{ if(t===1)lr=ascii(v,vo,c,base,le); if(t===3)or_=ascii(v,vo,c,base,le); if(t===2)lv=dms(v,vo,base,le); if(t===4)ov=dms(v,vo,base,le); });
+    if(lv!==null)out.lat=lr==='S'?-lv:lv; if(ov!==null)out.lon=or_==='W'?-ov:ov; } return out; }
+function eachTag(v,dir,le,fn){ var n=v.getUint16(dir,le); for(var i=0;i<n;i++){ var e=dir+2+i*12; fn(v.getUint16(e,le),v.getUint16(e+2,le),v.getUint32(e+4,le),e+8); } }
+function ascii(v,vo,c,base,le){ var p=c>4?base+v.getUint32(vo,le):vo,s=''; for(var i=0;i<c-1;i++){ var ch=v.getUint8(p+i); if(!ch)break; s+=String.fromCharCode(ch); } return s; }
+function dms(v,vo,base,le){ var p=base+v.getUint32(vo,le); function rat(o){ var n=v.getUint32(o,le),d=v.getUint32(o+4,le); return d?n/d:0; } return rat(p)+rat(p+8)/60+rat(p+16)/3600; }
+function exifTs(ts){ var m=String(ts).match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/); return m?m[1]+'-'+m[2]+'-'+m[3]+' '+m[4]+':'+m[5]+':'+m[6]:''; }
+
+function shrink(file){ return new Promise(res=>{ var img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{ var max=1280,w=img.width,h=img.height; if(Math.max(w,h)>max){ var k=max/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k);} var c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.82)); };
+  img.onerror=()=>{ URL.revokeObjectURL(url); res(null); }; img.src=url; }); }
+function deviceGps(){ return new Promise(res=>{ if(!navigator.geolocation) return res({}); navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),()=>res({}),{enableHighAccuracy:true,timeout:8000,maximumAge:30000}); }); }
+function handlePhoto(file,cb){ var fr=new FileReader(); fr.onload=()=>{ var ex={ok:false}; try{ex=readExif(fr.result);}catch(e){} shrink(file).then(durl=>{ deviceGps().then(dev=>{
+  cb({ data_b64:durl?durl.split(',')[1]:'', preview:durl, mime:'image/jpeg', filename:file.name||'punch.jpg',
+    exif_lat:ex.lat==null?'':ex.lat, exif_lon:ex.lon==null?'':ex.lon, exif_ts:ex.ts?exifTs(ex.ts):'',
+    device_lat:dev.lat==null?'':dev.lat, device_lon:dev.lon==null?'':dev.lon }); }); }); }; fr.readAsArrayBuffer(file); }
+
+/* ---------- nav ---------- */
+var ICONS={
+  attend:'<svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
+  admin:'<svg viewBox="0 0 24 24"><path d="M7 21V11M12 21V4M17 21v-6"/></svg>',
+  perf:'<svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/></svg>',
+  ana:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>'
+};
+function navItems(){
+  if(S.perms.is_admin) return [
+    ['admin','Attendance','s-admin',drawAdmin],
+    ['perf','Performance','s-maint',()=>drawMaint('Performance')],
+    ['ana','Analytics','s-maint',()=>drawMaint('Analytics')]
+  ];
+  return [
+    ['attend','Attendance','s-attend',drawAttend],
+    ['perf','Performance','s-maint',()=>drawMaint('Performance')],
+    ['ana','Analytics','s-maint',()=>drawMaint('Analytics')]
+  ];
+}
+function buildNav(){ var items=navItems(),n=$('nav');
+  n.innerHTML=items.map((it,i)=>'<button data-i="'+i+'">'+ICONS[it[0]]+'<span>'+it[1]+'</span></button>').join('');
+  n.classList.remove('hide');
+  [].forEach.call(n.children,b=>{ b.onclick=()=>go(items[+b.dataset.i]); });
+  go(items[0]);
+}
+function go(item){
+  [].forEach.call(document.querySelectorAll('.screen'),s=>s.classList.toggle('on',s.id===item[2]));
+  var items=navItems();
+  [].forEach.call($('nav').children,(b,i)=>b.classList.toggle('on',items[i]&&items[i][2]===item[2]));
+  window.scrollTo(0,0); item[3]();
+}
+function onlyScreen(id){ [].forEach.call(document.querySelectorAll('.screen'),s=>s.classList.toggle('on',s.id===id)); $('nav').classList.add('hide'); }
+function loading(el){ el.innerHTML='<div class="empty"><div class="spin" style="margin:0 auto"></div></div>'; }
+function drawMaint(title){ $('maintTitle').textContent=title+' — under maintenance'; }
+
+/* ---------- attendance (BDE / TL) ---------- */
+function drawAttend(){
+  var el=$('s-attend'); loading(el); S.photo=null;
+  get('/poas').then(c=>{
+    if(!c.ok) return el.innerHTML='<div class="empty"><b>Could not load your plan</b>'+esc(c.error||'')+'</div>';
+    var isTL = S.user.role==='TL';
+    var needWr = c.needs_wr_code;
+
+    var venueField = isTL
+      ? planList(c)
+      : (c.poas.length
+          ? '<label class="f"><span>Where are you?</span><select id="poa">'+
+            c.poas.map(p=>'<option value="'+esc(p.poa_name)+'">'+esc(p.poa_name)+(p.pod_id?' — '+esc(p.pod_id):'')+'</option>').join('')+
+            '</select></label>'
+          : '<div class="empty"><b>No activity planned for you today</b>Nothing is scheduled under '+esc(c.target||'your TL')+'. Check with your TL.</div>');
+
+    el.innerHTML =
+      '<div class="hero"><div class="big">'+(isTL?'Your plan today':'Ready to start')+'</div>'+
+      '<div class="sub">'+(isTL
+          ? (c.poas.length+' activit'+(c.poas.length===1?'y':'ies')+' to set up')
+          : (c.explicitly_assigned?'Assigned to you':(c.poas.length?c.poas.length+' venue'+(c.poas.length>1?'s':'')+' on your team today':'')))+'</div></div>'+
+      (!isTL && S.user.wr_code ? '<div class="code"><span class="lab">Your WR code</span><span class="val">'+esc(S.user.wr_code)+'</span></div>' : '')+
+      (needWr ? '<label class="f"><span>Your wallet recharge code</span><input id="wr" placeholder="e.g. B7N4X5"></label>' : '')+
+      venueField +
+      ((isTL && !c.poas.length) ? '' :
+        '<label for="shot" class="shot" id="shotBox">'+
+          '<svg viewBox="0 0 24 24"><path d="M4 8.5h3.2l1.8-2.5h6l1.8 2.5H20v10.5H4z"/><circle cx="12" cy="13.5" r="3.6"/></svg>'+
+          (isTL?'Upload your setup image':'Take the site photo')+
+          '<div class="hint">Use GPS Map Camera so the location is saved</div></label>'+
+        '<input id="shot" type="file" accept="image/*" capture="environment" class="hide">'+
+        '<div class="gps" id="gps"></div>'+
+        '<button class="btn" id="go" disabled>'+(isTL?'Submit setup':'Submit attendance')+'</button>');
+
+    if((isTL && !c.poas.length)) return;
+    wirePhoto();
+    $('go').onclick=function(){
+      var poa = isTL ? (c.poas[0]&&c.poas[0].poa_name) : ($('poa')?$('poa').value:'');
+      if(!isTL && !poa) return toast('Choose where you are',true);
+      var wr = needWr ? ($('wr').value||'').trim() : '';
+      if(needWr && !wr) return toast('Enter your WR code',true);
+      var b=this; busy(b,true,'Submitting…');
+      post('/submit',{ token:S.token, poa_name:poa, wr_code:wr, photo:S.photo }).then(r=>{
+        busy(b,false);
+        if(!r.ok) return toast(r.error||'Could not submit',true);
+        el.innerHTML='<div class="empty" style="padding-top:70px"><div style="font-size:42px">✓</div>'+
+          '<b style="margin-top:10px">'+esc(r.message)+'</b>'+esc(poa)+'</div>';
+      }).catch(()=>{ busy(b,false); toast('Network problem. Try again.',true); });
+    };
+  });
+}
+function planList(c){
+  if(!c.poas.length) return '<div class="empty"><b>No activities planned today</b>Nothing scheduled under your name yet.</div>';
+  return '<div class="rows" style="margin-bottom:16px">'+c.poas.map(p=>
+    '<div class="row"><div class="t">'+esc(p.poa_name)+'<div style="font-size:12px;color:var(--ink-60);font-weight:500">'+esc(p.pod_id||'')+(p.activity_time?' · '+esc(p.activity_time):'')+'</div></div></div>'
+  ).join('')+'</div>';
+}
+function wirePhoto(){
+  $('shot').onchange=function(){ var f=this.files&&this.files[0]; if(!f)return;
+    var box=$('shotBox'); box.classList.remove('has'); box.innerHTML='<div class="spin" style="margin:0 auto"></div>';
+    handlePhoto(f,p=>{ S.photo=p; box.classList.add('has'); box.innerHTML='<img src="'+p.preview+'"><div class="retake">Tap to retake</div>';
+      var hasGps = p.exif_lat!=='' && p.exif_lon!=='';
+      $('gps').innerHTML = hasGps ? '<b>✓ Location saved</b> from the photo' : 'No GPS in this photo — it will still submit, but use GPS Map Camera if you can';
+      $('go').disabled=false;
+    }); };
+}
+
+/* ---------- admin ---------- */
+function drawAdmin(){
+  var el=$('s-admin');
+  S.aFrom=S.aFrom||todayKey(); S.aTo=S.aTo||todayKey(); S.aGroup=S.aGroup||'region';
+  loading(el);
+  get('/admin/summary',{from:S.aFrom,to:S.aTo}).then(r=>{
+    if(!r.ok) return el.innerHTML='<div class="empty"><b>Could not load</b>'+esc(r.error||'')+'</div>';
+    el.innerHTML=
+      '<div class="dates">'+
+        '<label><span style="font-size:11px;color:var(--ink-60);font-weight:600">From</span><input type="date" id="dFrom" value="'+S.aFrom+'"></label>'+
+        '<label><span style="font-size:11px;color:var(--ink-60);font-weight:600">To</span><input type="date" id="dTo" value="'+S.aTo+'"></label>'+
+      '</div>'+
+      '<div class="tiles">'+
+        '<div class="tile"><div class="k">BDEs present</div><div class="v">'+r.totals.bde_present+'</div></div>'+
+        '<div class="tile"><div class="k">TL setups</div><div class="v">'+r.totals.tl_submitted+'</div></div>'+
+      '</div>'+
+      '<div class="seg" id="grp">'+
+        '<button data-g="region" class="'+(S.aGroup==='region'?'on':'')+'">By region</button>'+
+        '<button data-g="tl" class="'+(S.aGroup==='tl'?'on':'')+'">By TL</button>'+
+      '</div>'+
+      (S.aGroup==='region'
+        ? (r.by_region.length?'<div class="rows">'+r.by_region.map(x=>'<div class="row"><div class="t">'+esc(x.region)+'</div><div class="v">'+x.present+'</div></div>').join('')+'</div>':empty())
+        : (r.by_tl.length?'<div class="rows">'+r.by_tl.map(x=>'<div class="row"><div class="t">'+esc(x.tl)+'</div><div class="v">'+x.present+'</div></div>').join('')+'</div>':empty()));
+    $('dFrom').onchange=e=>{ S.aFrom=e.target.value; drawAdmin(); };
+    $('dTo').onchange=e=>{ S.aTo=e.target.value; drawAdmin(); };
+    [].forEach.call($('grp').children,b=>b.onclick=()=>{ S.aGroup=b.dataset.g; drawAdmin(); });
+  });
+  function empty(){ return '<div class="empty"><b>No attendance in this range</b>Pick another date, or wait for submissions.</div>'; }
+}
+
+/* ---------- auth ---------- */
+function showWho(){ $('outBtn').classList.toggle('hide',!S.user);
+  $('who').innerHTML = S.user ? '<b>'+esc((S.user.name||'').split(' ')[0])+'</b><span>'+esc(S.user.role)+(S.user.region&&S.user.region!=='ALL'?' · '+esc(S.user.region):'')+'</span>' : ''; }
+function signedIn(r){ S.token=r.token; S.user=r.user; S.perms=r.permissions; showWho(); buildNav(); }
+function signOut(msg){ S={token:null,user:null,perms:{},photo:null}; showWho(); onlyScreen('s-login'); $('li-pw').value=''; $('loginErr').innerHTML=msg?'<div class="err">'+esc(msg)+'</div>':''; }
+
+$('li-go').onclick=function(){
+  var id=$('li-id').value.trim(), pw=$('li-pw').value;
+  if(!id||!pw){ $('loginErr').innerHTML='<div class="err">Enter your email and mobile number.</div>'; return; }
+  var b=this; busy(b,true,'Signing in…'); $('loginErr').innerHTML='';
+  post('/login',{user_id:id,password:pw}).then(r=>{ busy(b,false);
+    if(!r.ok){ $('loginErr').innerHTML='<div class="err">'+esc(r.error)+'</div>'; return; }
+    signedIn(r);
+  }).catch(()=>{ busy(b,false); $('loginErr').innerHTML='<div class="err">Network problem. Check your connection.</div>'; });
+};
+$('li-pw').onkeydown=e=>{ if(e.key==='Enter') $('li-go').click(); };
+$('themeBtn').onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+$('outBtn').onclick=()=>{ if(S.user&&confirm('Sign out of Swish Ground?')) signOut(); };
+
+(function boot(){ initTheme(); $('splash').classList.add('hide'); $('app').classList.remove('hide'); onlyScreen('s-login'); $('li-id').focus(); })();
+</script>
+</body>
+</html>
