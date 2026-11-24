@@ -172,6 +172,8 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;',
 function toast(m,bad){ var t=$('toast'); t.textContent=m; t.className='on'+(bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3200); }
 function money(n){ return Number(n||0).toLocaleString('en-IN'); }
 function todayKey(){ var d=new Date(Date.now()+5.5*3600*1000); return d.toISOString().slice(0,10); }
+function fmtTime(ts){ var m=String(ts||'').match(/(\d{2}):(\d{2})/); if(!m) return '';
+  var h=+m[1],ap=h<12?'am':'pm',h12=h%12||12; return h12+':'+m[2]+' '+ap; }
 function busy(b,on,l){ b.disabled=on; if(on){ b.dataset.l=b.textContent; b.textContent=l||'Working…'; } else if(b.dataset.l){ b.textContent=b.dataset.l; } }
 
 function api(method, path, params, body){
@@ -266,6 +268,42 @@ function drawAttend(){
     var isTL = S.user.role==='TL';
     var needWr = c.needs_wr_code;
 
+    // The server owns the truth. Switching tabs or reopening must never offer a
+    // second login — it shows where the person is in the day instead.
+    if(c.state==='complete'){
+      return el.innerHTML='<div class="empty" style="padding-top:64px"><div style="font-size:42px">✓</div>'+
+        '<b style="margin-top:10px">Day complete</b>'+
+        'Login '+fmtTime(c.login_at)+' · logout '+fmtTime(c.logout_at)+
+        (c.submitted_poa?'<div style="margin-top:6px">'+esc(c.submitted_poa)+'</div>':'')+'</div>';
+    }
+    // A TL submits one setup image and is done — no logout half in this version.
+    if(c.state==='punched_in' && isTL){
+      return el.innerHTML='<div class="empty" style="padding-top:64px"><div style="font-size:42px">✓</div>'+
+        '<b style="margin-top:10px">Setup submitted</b>'+
+        fmtTime(c.login_at)+(c.submitted_poa?' · '+esc(c.submitted_poa):'')+'</div>';
+    }
+    if(c.state==='punched_in'){
+      S.photo=null;
+      el.innerHTML='<div class="hero"><div class="big" style="color:var(--swish-dark)">Logged in</div>'+
+        '<div class="sub">Since '+fmtTime(c.login_at)+(c.submitted_poa?' · '+esc(c.submitted_poa):'')+'</div></div>'+
+        '<label for="shot" class="shot" id="shotBox">'+
+          '<svg viewBox="0 0 24 24"><path d="M4 8.5h3.2l1.8-2.5h6l1.8 2.5H20v10.5H4z"/><circle cx="12" cy="13.5" r="3.6"/></svg>'+
+          'Take your logout photo<div class="hint">Use GPS Map Camera so the location is saved</div></label>'+
+        '<input id="shot" type="file" accept="image/*" capture="environment" class="hide">'+
+        '<div class="gps" id="gps"></div>'+
+        '<button class="btn" id="go" disabled>Record logout</button>';
+      wirePhoto();
+      $('go').onclick=function(){
+        var b=this; busy(b,true,'Recording…');
+        post('/submit',{ token:S.token, punch_type:'logout', photo:S.photo }).then(r=>{
+          busy(b,false);
+          if(!r.ok) return toast(r.message||r.error||'Could not submit',true);
+          drawAttend();
+        }).catch(()=>{ busy(b,false); toast('Network problem. Try again.',true); });
+      };
+      return;
+    }
+
     var venueField = isTL
       ? planList(c)
       : (c.poas.length
@@ -299,11 +337,11 @@ function drawAttend(){
       var wr = needWr ? ($('wr').value||'').trim() : '';
       if(needWr && !wr) return toast('Enter your WR code',true);
       var b=this; busy(b,true,'Submitting…');
-      post('/submit',{ token:S.token, poa_name:poa, wr_code:wr, photo:S.photo }).then(r=>{
+      post('/submit',{ token:S.token, punch_type:'login', poa_name:poa, wr_code:wr, photo:S.photo }).then(r=>{
         busy(b,false);
-        if(!r.ok) return toast(r.error||'Could not submit',true);
-        el.innerHTML='<div class="empty" style="padding-top:70px"><div style="font-size:42px">✓</div>'+
-          '<b style="margin-top:10px">'+esc(r.message)+'</b>'+esc(poa)+'</div>';
+        if(!r.ok) return toast(r.message||r.error||'Could not submit',true);
+        // Re-fetch state so the screen becomes "logged in", not a dead-end page.
+        drawAttend();
       }).catch(()=>{ busy(b,false); toast('Network problem. Try again.',true); });
     };
   });
