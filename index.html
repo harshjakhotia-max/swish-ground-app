@@ -147,6 +147,7 @@ nav svg{width:21px;height:21px;stroke-width:2;fill:none;stroke:currentColor;stro
     </section>
 
     <section class="screen" id="s-attend"></section>
+    <section class="screen" id="s-team"></section>
     <section class="screen" id="s-admin"></section>
     <section class="screen" id="s-maint">
       <div class="maint">
@@ -164,7 +165,7 @@ nav svg{width:21px;height:21px;stroke-width:2;fill:none;stroke:currentColor;stro
 
 <script>
 /* Swish Ground — attendance. Talks to the Render backend over fetch. */
-var API = 'https://swish-backend-2ge4.onrender.com';     // e.g. https://swish-ground.onrender.com
+var API = 'REPLACE_WITH_RENDER_URL';     // e.g. https://swish-ground.onrender.com
 var S = { token:null, user:null, perms:{}, photo:null };
 
 function $(id){ return document.getElementById(id); }
@@ -228,6 +229,7 @@ function handlePhoto(file,cb){ var fr=new FileReader(); fr.onload=()=>{ var ex={
 /* ---------- nav ---------- */
 var ICONS={
   attend:'<svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
+  team:'<svg viewBox="0 0 24 24"><path d="M16 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 19v-2a4 4 0 0 0-3-3.9"/></svg>',
   admin:'<svg viewBox="0 0 24 24"><path d="M7 21V11M12 21V4M17 21v-6"/></svg>',
   perf:'<svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/></svg>',
   ana:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>'
@@ -235,6 +237,12 @@ var ICONS={
 function navItems(){
   if(S.perms.is_admin) return [
     ['admin','Attendance','s-admin',drawAdmin],
+    ['perf','Performance','s-maint',()=>drawMaint('Performance')],
+    ['ana','Analytics','s-maint',()=>drawMaint('Analytics')]
+  ];
+  if(S.user && S.user.role==='TL') return [
+    ['attend','Attendance','s-attend',drawAttend],
+    ['team','Your team','s-team',drawTeam],
     ['perf','Performance','s-maint',()=>drawMaint('Performance')],
     ['ana','Analytics','s-maint',()=>drawMaint('Analytics')]
   ];
@@ -276,11 +284,35 @@ function drawAttend(){
         'Login '+fmtTime(c.login_at)+' · logout '+fmtTime(c.logout_at)+
         (c.submitted_poa?'<div style="margin-top:6px">'+esc(c.submitted_poa)+'</div>':'')+'</div>';
     }
-    // A TL submits one setup image and is done — no logout half in this version.
-    if(c.state==='punched_in' && isTL){
-      return el.innerHTML='<div class="empty" style="padding-top:64px"><div style="font-size:42px">✓</div>'+
-        '<b style="margin-top:10px">Setup submitted</b>'+
-        fmtTime(c.login_at)+(c.submitted_poa?' · '+esc(c.submitted_poa):'')+'</div>';
+    // A TL uploads one setup image per activity. Show each POA with its status;
+    // tapping a pending one opens the camera for just that activity.
+    if(isTL){
+      if(!c.poas.length){
+        return el.innerHTML='<div class="empty"><b>No activities planned today</b>Nothing scheduled under your name yet.</div>';
+      }
+      var done = c.submitted_poas || {};
+      var doneCount = c.poas.filter(p=>done[p.poa_name.toLowerCase()]).length;
+      el.innerHTML =
+        '<div class="hero"><div class="big">Your setups today</div>'+
+        '<div class="sub">'+doneCount+' of '+c.poas.length+' submitted</div></div>'+
+        '<div class="rows" id="tlList">'+c.poas.map(function(p){
+          var isDone = !!done[p.poa_name.toLowerCase()];
+          return '<div class="row" data-poa="'+esc(p.poa_name)+'" style="'+(isDone?'':'cursor:pointer')+'">'+
+            '<div class="gr"><div class="t">'+esc(p.poa_name)+'</div>'+
+            '<div class="s">'+esc(p.pod_id||'')+(p.activity_time?' · '+esc(p.activity_time):'')+'</div></div>'+
+            (isDone
+              ? '<div style="color:var(--swish-dark);font-weight:800">✓ Done</div>'
+              : '<div style="color:var(--swish);font-weight:700;font-size:13px">Tap to set up →</div>')+
+            '</div>';
+        }).join('')+'</div>'+
+        '<p class="note">Upload a setup image for each activity. Tap one to start.</p>';
+      // tapping a pending activity opens the per-POA camera screen
+      [].forEach.call(document.querySelectorAll('#tlList .row'),function(row){
+        var poa=row.getAttribute('data-poa');
+        if(done[poa.toLowerCase()]) return;
+        row.onclick=function(){ tlSetupOne(c, poa); };
+      });
+      return;
     }
     if(c.state==='punched_in'){
       S.photo=null;
@@ -346,6 +378,29 @@ function drawAttend(){
     };
   });
 }
+function tlSetupOne(c, poa){
+  var el=$('s-attend'); S.photo=null;
+  el.innerHTML=
+    '<div class="hero"><div class="big">Setup image</div><div class="sub">'+esc(poa)+'</div></div>'+
+    '<label for="shot" class="shot" id="shotBox">'+
+      '<svg viewBox="0 0 24 24"><path d="M4 8.5h3.2l1.8-2.5h6l1.8 2.5H20v10.5H4z"/><circle cx="12" cy="13.5" r="3.6"/></svg>'+
+      'Take the setup photo<div class="hint">Use GPS Map Camera so the location is saved</div></label>'+
+    '<input id="shot" type="file" accept="image/*" capture="environment" class="hide">'+
+    '<div class="gps" id="gps"></div>'+
+    '<button class="btn" id="go" disabled>Submit setup</button>'+
+    '<button class="btn" id="back" style="background:var(--mist);color:var(--ink);margin-top:10px">Back to list</button>';
+  $('back').onclick=drawAttend;
+  wirePhoto();
+  $('go').onclick=function(){
+    var b=this; busy(b,true,'Submitting…');
+    post('/submit',{ token:S.token, punch_type:'login', poa_name:poa, photo:S.photo }).then(r=>{
+      busy(b,false);
+      if(!r.ok) return toast(r.message||r.error||'Could not submit',true);
+      drawAttend();   // back to the checklist, now showing this one done
+    }).catch(()=>{ busy(b,false); toast('Network problem. Try again.',true); });
+  };
+}
+
 function planList(c){
   if(!c.poas.length) return '<div class="empty"><b>No activities planned today</b>Nothing scheduled under your name yet.</div>';
   return '<div class="rows" style="margin-bottom:16px">'+c.poas.map(p=>
@@ -360,6 +415,41 @@ function wirePhoto(){
       $('gps').innerHTML = hasGps ? '<b>✓ Location saved</b> from the photo' : 'No GPS in this photo — it will still submit, but use GPS Map Camera if you can';
       $('go').disabled=false;
     }); };
+}
+
+/* ---------- TL: your team ---------- */
+function drawTeam(){
+  var el=$('s-team');
+  S.tFrom=S.tFrom||todayKey(); S.tTo=S.tTo||todayKey();
+  loading(el);
+  get('/team',{from:S.tFrom,to:S.tTo}).then(r=>{
+    if(!r.ok) return el.innerHTML='<div class="empty"><b>Could not load your team</b>'+esc(r.error||'')+'</div>';
+    if(!r.members.length) return el.innerHTML='<div class="empty"><b>No team members yet</b>BDEs reporting to you appear here.</div>';
+    el.innerHTML=
+      '<div class="dates">'+
+        '<label><span style="font-size:11px;color:var(--ink-60);font-weight:600">From</span><input type="date" id="tFrom" value="'+S.tFrom+'"></label>'+
+        '<label><span style="font-size:11px;color:var(--ink-60);font-weight:600">To</span><input type="date" id="tTo" value="'+S.tTo+'"></label>'+
+      '</div>'+
+      '<div class="tiles">'+
+        '<div class="tile"><div class="k">Team size</div><div class="v">'+r.team_size+'</div></div>'+
+        '<div class="tile"><div class="k">Logged in</div><div class="v">'+r.logged_in_count+'</div></div>'+
+      '</div>'+
+      (r.unmapped_count?'<p class="note" style="margin:-6px 0 14px">'+r.unmapped_count+' member'+(r.unmapped_count>1?'s':'')+' not yet mapped to a WR code (shown as NA).</p>':'')+
+      '<div class="rows">'+r.members.map(function(m){
+        return '<div class="row">'+
+          '<div class="gr"><div class="t">'+esc(m.name)+
+            (m.status==='Inactive'?' <span style="color:var(--alert);font-size:11px;font-weight:700">· Inactive</span>':'')+'</div>'+
+            '<div class="s">'+esc(m.wr_code)+' · '+esc(m.region)+'</div></div>'+
+          '<div style="text-align:right">'+
+            (m.logged_in_range
+              ? '<span style="color:var(--swish-dark);font-weight:800;font-size:13px">✓ '+m.logged_days+'d</span>'
+              : '<span style="color:var(--ink-30);font-weight:700;font-size:13px">—</span>')+
+          '</div></div>';
+      }).join('')+'</div>'+
+      '<p class="note">✓ = logged in during the selected dates, with day count. Pick a range above.</p>';
+    $('tFrom').onchange=e=>{ S.tFrom=e.target.value; drawTeam(); };
+    $('tTo').onchange=e=>{ S.tTo=e.target.value; drawTeam(); };
+  });
 }
 
 /* ---------- admin ---------- */
